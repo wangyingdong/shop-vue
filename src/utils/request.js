@@ -20,7 +20,7 @@ instance.interceptors.request.use(
   }
 )
 
-// 相应拦截
+// 响应拦截
 instance.interceptors.response.use(
   function (response) {
     return response
