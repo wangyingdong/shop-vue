@@ -1,11 +1,7 @@
 <template>
   <div>
     <!--导航-->
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>权限管理</el-breadcrumb-item>
-      <el-breadcrumb-item>权限列表</el-breadcrumb-item>
-    </el-breadcrumb>
+    <Nav :navList="navList"></Nav>
 
     <el-card>
       <el-table :data="tableData" border style="width: 100%">
@@ -27,10 +23,17 @@
 </template>
 
 <script>
+import Nav from '../nav/Nav.vue'
+
 export default {
   name: 'Rights',
+  components: {
+    Nav
+  },
   data() {
     return {
+      navList: [{ name: '权限管理' }, { name: '权限列表' }],
+
       tableData: []
     }
   },
@@ -39,17 +42,11 @@ export default {
   },
   methods: {
     async getRightsList() {
-      const { data: res } = await this.$http.get('/rights/list')
-      if (res.code !== 200) {
-        return this.$message.error(res.message)
-      }
-      this.tableData = res.data
+      const data = await this.$http.get('/rights/authorities')
+      this.tableData = data
     },
     async getRole(id) {
-      const { data: res } = await this.$http.get('/rights/roles/' + id)
-      if (res.code !== 200) {
-        return this.$message.error(res.message)
-      }
+      const data = await this.$http.get('/rights/roles/' + id)
     }
   }
 }

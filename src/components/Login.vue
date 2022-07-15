@@ -24,7 +24,9 @@
 </template>
 
 <script>
-import { setItem } from '@/utils/storage.js'
+import { setItem } from '@/utils/storage'
+import { usersLogin } from '@/utils/api'
+
 export default {
   name: 'Login',
   data() {
@@ -62,15 +64,11 @@ export default {
       this.$refs[formName].validate(async (valid) => {
         if (valid) {
           this.loading = true
-          const { data: res } = await this.$http.post('/users/login', this.loginForm)
-          if (res.code === 200) {
-            setItem('token', res.data.accessToken)
-            this.$message.success('登录成功')
-            this.$router.push('/home')
-          } else {
-            this.loading = false
-            return this.$message.error('登录失败')
-          }
+          const data = await usersLogin(this.loginForm)
+          setItem('token', data.accessToken)
+          setItem('user', data.user)
+          this.$message.success('登录成功')
+          this.$router.push('/home')
         }
       })
     },

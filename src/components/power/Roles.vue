@@ -1,11 +1,8 @@
 <template>
   <div>
     <!--导航-->
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>权限管理</el-breadcrumb-item>
-      <el-breadcrumb-item>角色列表</el-breadcrumb-item>
-    </el-breadcrumb>
+    <Nav :navList="navList"></Nav>
+
     <el-card>
       <el-row
         ><el-col :span="1"><el-button type="primary">添加角色</el-button></el-col></el-row
@@ -76,10 +73,17 @@
 </template>
 
 <script>
+import Nav from '../nav/Nav.vue'
+
 export default {
   name: 'Roles',
+  components: {
+    Nav
+  },
   data() {
     return {
+      navList: [{ name: '权限管理' }, { name: '角色列表' }],
+
       moduleDialogVisible: false,
       roleModuledialogVisible: false,
       roleModuleData: [],
@@ -103,52 +107,39 @@ export default {
     async saveRoleModule() {
       const keys = [...this.$refs.treeRoleModuleRef.getCheckedKeys(), ...this.$refs.treeRoleModuleRef.getHalfCheckedKeys()]
       const ids = keys.join(',')
-      const { data: res } = await this.$http.post('/rights/roleModule/' + this.roleId, { moduleIds: ids })
-      if (res.code !== 200) {
-        return this.$message.error(res.message)
-      }
+      const data = await this.$http.post('/rights/roleModule/' + this.roleId, { moduleIds: ids })
       this.$message({ type: 'success', message: '设置成功!' })
       this.moduleDialogVisible = false
     },
     async getRoles() {
-      const { data: res } = await this.$http.get('/rights/roles')
-      if (res.code !== 200) {
-        return this.$message.error(res.message)
-      }
+      const data = await this.$http.get('/rights/roles')
       // 循环数组中的对象增加属性
       // let newArr = res.data.map(item=>{
       //   return {...item,hasChildren:true}
       //   })
       // this.tableData = (newArr)
-      this.tableData = res.data
+      this.tableData = data
     },
     async showModule(id) {
       this.roleId = id
-      const { data: res } = await this.$http.get('/rights/modules')
-      if (res.code !== 200) {
-        return this.$message.error(res.message)
-      }
+      const data = await this.$http.get('/rights/modules')
+
       this.moduleDialogVisible = true
-      this.moduleData = res.data
-      const { data: result } = await this.$http.get('/rights/roleModule/' + id)
-      if (result.code !== 200) {
-        return this.$message.error(res.message)
-      }
-      // 三级节点
-      this.defaultKeys = result.data.map((item) => {
-        if (item.level === 3) return item.moduleId
+      this.moduleData = data
+      const result = await this.$http.get('/rights/roleModule/' + id)
+
+      // 选中
+      this.defaultKeys = result.map((item) => {
+        return item.moduleId
       })
     },
     async showRoleModule(id) {
-      const { data: res } = await this.$http.get('/rights/role/' + id)
-      if (res.code !== 200) {
-        return this.$message.error(res.message)
-      }
-      if (!res.data.moduleList) {
+      const data = await this.$http.get('/rights/role/' + id)
+      if (!data.moduleList) {
         return this.$message.error('没有数据')
       }
       this.roleModuledialogVisible = true
-      this.roleModuleData = res.data.moduleList
+      this.roleModuleData = data.moduleList
       this.roleId = id
     },
     async deleteRoleModule(moduleId) {
@@ -158,10 +149,8 @@ export default {
         type: 'warning'
       })
         .then(async () => {
-          const { data: res } = await this.$http.delete('/rights/role/' + this.roleId + '/module/' + moduleId)
-          if (res.code !== 200) {
-            return this.$message.error(res.data)
-          }
+          const data = await this.$http.delete('/rights/role/' + this.roleId + '/module/' + moduleId)
+
           this.$message({ type: 'success', message: '删除成功!' })
           this.showRoleModule(this.roleId)
         })

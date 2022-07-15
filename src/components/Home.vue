@@ -16,7 +16,7 @@
               <span>{{ item.name }}</span>
             </template>
             <!--二级菜单 -->
-            <el-menu-item :index="'/' + subItem.path" v-for="subItem in item.children" :key="subItem.id" @click="saveNavState('/' + subItem.path)">
+            <el-menu-item :index="subItem.path" v-for="subItem in item.children" :key="subItem.id" @click="saveNavState(subItem.path)">
               <template slot="title">
                 <i class="el-icon-menu"></i>
                 <span>{{ subItem.name }}</span>
@@ -35,6 +35,8 @@
 </template>
 
 <script>
+import { getItem } from '@/utils/storage.js'
+
 export default {
   name: 'Home',
   data() {
@@ -68,11 +70,9 @@ export default {
       this.$router.push('/login')
     },
     async getMenuList() {
-      const { data: res } = await this.$http.get('/rights/modules')
-      if (res.code !== 200) {
-        return this.$message.error(res.message)
-      }
-      this.menuList = res.data
+      const user = getItem('user')
+      const data = await this.$http.get('/rights/modules/' + user.id)
+      this.menuList = data
     }
   }
 }

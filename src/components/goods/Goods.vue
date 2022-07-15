@@ -1,17 +1,13 @@
 <template>
   <div>
     <!--导航-->
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>商品管理</el-breadcrumb-item>
-      <el-breadcrumb-item>商品列表</el-breadcrumb-item>
-    </el-breadcrumb>
+    <Nav :navList="navList"></Nav>
 
     <!--卡片视图区域-->
     <el-card>
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input v-model="queryParams.query" placeholder="请输入内容">
+          <el-input v-model="queryParams.query" clearable @clear="getGoodsData" placeholder="请输入内容">
             <el-button @click="getGoodsData()" slot="append" icon="el-icon-search"></el-button>
           </el-input>
         </el-col>
@@ -61,10 +57,18 @@
 </template>
 
 <script>
+import Nav from '../nav/Nav.vue'
+
 export default {
   name: 'Goods',
+
+  components: {
+    Nav
+  },
   data() {
     return {
+      navList: [{ name: '商品管理' }, { name: '商品列表' }],
+
       goodData: [],
       page: {
         total: 0,
@@ -92,14 +96,10 @@ export default {
       }
     },
     async getGoodsData() {
-      const { data: res } = await this.$http.get('/goods', {
-        params: this.queryParams
-      })
-      if (res.code !== 200) {
-        return this.$message.error(res.data)
-      }
-      this.goodData = res.data.list
-      this.page = { total: res.data.total, hasNextPage: res.data.hasNextPage }
+      const data = await this.$http.get('/goods', this.queryParams)
+
+      this.goodData = data.list
+      this.page = { total: data.total, hasNextPage: data.hasNextPage }
     },
     handleSizeChange(val) {
       this.queryParams.pageSize = val
@@ -119,10 +119,8 @@ export default {
         type: 'warning'
       })
         .then(async () => {
-          const { data: res } = await this.$http.delete('/goods/' + row.id)
-          if (res.code !== 200) {
-            return this.$message.error(res.data)
-          }
+          const data = await this.$http.delete('/goods/' + row.id)
+
           this.$message({ type: 'success', message: '删除成功!' })
           this.goodData.splice(
             this.goodData.findIndex((item) => item.id === row.id),

@@ -1,11 +1,7 @@
 <template>
   <div>
     <!--导航-->
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>商品管理</el-breadcrumb-item>
-      <el-breadcrumb-item>商品分类</el-breadcrumb-item>
-    </el-breadcrumb>
+    <Nav :navList="navList"></Nav>
 
     <!--卡片视图区域-->
     <el-card>
@@ -86,10 +82,18 @@
 </template>
 
 <script>
+import Nav from '../nav/Nav.vue'
+
 export default {
   name: 'Categories',
+
+  components: {
+    Nav
+  },
   data() {
     return {
+      navList: [{ name: '商品管理' }, { name: '商品分类' }],
+
       addCategoryForm: {
         name: '',
         parentId: 0,
@@ -167,10 +171,8 @@ export default {
       this.$refs.addCategoryFormRef.validate(async (valid) => {
         if (valid) {
           console.log(this.addCategoryForm)
-          const { data: res } = await this.$http.post('/category', this.addCategoryForm)
-          if (res.code !== 200) {
-            return this.$message.error(res.message)
-          }
+          const data = await this.$http.post('/category', this.addCategoryForm)
+
           this.$message({ type: 'success', message: '类别增加成功!' })
           this.addCategoryDialogVisible = false
           this.getCategoryList()
@@ -195,16 +197,12 @@ export default {
     },
     async showAddCategoryDialog() {
       this.addCategoryDialogVisible = true
-      const { data: res } = await this.$http.get('/category', {
-        params: {
-          pageNum: 1,
-          pageSize: 9999999
-        }
+      const data = await this.$http.get('/categories', {
+        pageNum: 1,
+        pageSize: 9999999
       })
-      if (res.code !== 200) {
-        return this.$message.error(res.message)
-      }
-      this.categoryData = res.data.list
+
+      this.categoryData = data.list
     },
     handleSizeChange(val) {
       this.queryParams.pageSize = val
@@ -215,14 +213,9 @@ export default {
       this.getCategoryList()
     },
     async getCategoryList() {
-      const { data: res } = await this.$http.get('/category', {
-        params: this.queryParams
-      })
-      if (res.code !== 200) {
-        return this.$message.error(res.message)
-      }
-      this.tableData = res.data.list
-      this.page = { total: res.data.total, hasNextPage: res.data.hasNextPage }
+      const data = await this.$http.get('/categories', this.queryParams)
+      this.tableData = data.list
+      this.page = { total: data.total, hasNextPage: data.hasNextPage }
     }
   }
 }

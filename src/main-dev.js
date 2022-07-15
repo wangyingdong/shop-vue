@@ -18,33 +18,12 @@ import 'quill/dist/quill.core.css'
 import 'quill/dist/quill.snow.css'
 import 'quill/dist/quill.bubble.css'
 
-import NProgress from 'nprogress'
-import 'nprogress/nprogress.css'
-
 import { getItem } from '@/utils/storage.js'
+import http from './utils/http'
 
-// axios
-import axios from 'axios'
+Vue.prototype.$http = http
+
 Vue.prototype.$echarts = echarts
-axios.defaults.baseURL = process.env.VUE_APP_BASE_API
-
-// 在request拦截，显示进度条
-axios.interceptors.request.use((config) => {
-  NProgress.start()
-  if (getItem('token') != null) {
-    config.headers.Authorization = 'Bearer ' + getItem('token')
-  }
-  return config
-})
-
-// 在response拦截，隐藏进度条
-axios.interceptors.response.use((config) => {
-  NProgress.done()
-  return config
-})
-
-Vue.prototype.$http = axios
-
 Vue.config.productionTip = false
 
 Vue.component('tree-table', TreeTable)

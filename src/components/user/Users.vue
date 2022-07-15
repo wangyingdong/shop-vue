@@ -1,11 +1,7 @@
 <template>
   <div>
     <!--导航-->
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>用户管理</el-breadcrumb-item>
-      <el-breadcrumb-item>用户列表</el-breadcrumb-item>
-    </el-breadcrumb>
+    <Nav :navList="navList"></Nav>
 
     <!--搜索-->
     <el-card>
@@ -114,7 +110,7 @@
 
       <span slot="footer" class="dialog-footer">
         <el-button @click="editDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="editUserSubmit">确 定</el-button>
+        <el-button type="primary" @click="editUserSubmit" :loading="loading">确 定</el-button>
       </span>
     </el-dialog>
 
@@ -142,8 +138,13 @@
 </template>
 
 <script>
+import Nav from '../nav/Nav.vue'
+
 export default {
   name: 'Users',
+  components: {
+    Nav
+  },
   data() {
     var checkMobile = (rule, value, callback) => {
       if (!value) {
@@ -174,6 +175,10 @@ export default {
     }
     // 参数列表对象
     return {
+      navList: [{ name: '用户管理' }, { name: '用户列表' }],
+
+      loading: false,
+
       roleRoleIds: [],
       addUserForm: {
         username: '',
@@ -270,12 +275,10 @@ export default {
     async setRoleSubmit(userInfo) {
       this.$refs.setRoleFormRef.validate(async (valid) => {
         if (valid) {
-          const { data: res } = await this.$http.put('/users/' + userInfo.id + '/role', {
+          const data = await this.$http.put('/users/' + userInfo.id + '/role', {
             roleRoleIds: this.roleRoleIds
           })
-          if (res.code !== 200) {
-            return this.$message.error(res.data)
-          }
+
           this.$message({ type: 'success', message: '权限设置成功!' })
           this.roleDialogVisible = false
           this.getUserList()
@@ -302,10 +305,8 @@ export default {
         type: 'warning'
       })
         .then(async () => {
-          const { data: res } = await this.$http.delete('/users/' + id)
-          if (res.code !== 200) {
-            return this.$message.error(res.data)
-          }
+          const data = await this.$http.delete('/users/' + id)
+
           this.$message({ type: 'success', message: '删除成功!' })
           this.getUserList()
         })
@@ -318,19 +319,13 @@ export default {
     },
     async showEditDialog(id) {
       this.editDialogVisible = true
-      const { data: res } = await this.$http.get('/users/' + id)
-      if (res.code !== 200) {
-        return this.$message.error(res.data)
-      }
-      this.editUserForm = res.data
+      const data = await this.$http.get('/users/' + id)
+      this.editUserForm = data
     },
     addUserSubmit() {
       this.$refs.addUserFormRef.validate(async (valid) => {
         if (valid) {
-          const { data: res } = await this.$http.post('/users/save', this.addUserForm)
-          if (res.code !== 200) {
-            return this.$message.error(res.data)
-          }
+          const data = await this.$http.post('/users/save', this.addUserForm)
           this.$message.success('用户增加成功')
           this.addDialogVisible = false
           this.getUserList()
@@ -338,17 +333,16 @@ export default {
       })
     },
     editUserSubmit() {
+      this.loading = true
       this.$refs.editUserFormRef.validate(async (valid) => {
         if (valid) {
-          const { data: res } = await this.$http.post('/users/update', {
+          const data = await this.$http.post('/users/update', {
             id: this.editUserForm.id,
             address: this.editUserForm.address,
             email: this.editUserForm.email,
             mobile: this.editUserForm.mobile
           })
-          if (res.code !== 200) {
-            return this.$message.error(res.data)
-          }
+
           this.$message.success('用户修改成功')
           this.editDialogVisible = false
           this.getUserList()
@@ -374,11 +368,7 @@ export default {
       })
     },
     async userStateChanged(userInfo) {
-      const { data: res } = await this.$http.put(`/users/${userInfo.id}/state/${userInfo.state}`, userInfo)
-      if (res.code !== 200) {
-        userInfo.state = !userInfo.state
-        return this.$message.error(res.data)
-      }
+      const data = await this.$http.put(`/users/${userInfo.id}/state/${userInfo.state}`, userInfo)
       return this.$message.success('用户状态更新成功')
     },
     handleSizeChange(val) {
@@ -390,14 +380,9 @@ export default {
       this.getUserList()
     },
     async getUserList() {
-      const { data: res } = await this.$http.get('/users', {
-        params: this.queryParams
-      })
-      if (res.code !== 200) {
-        return this.$message.error(res.data)
-      }
-      this.userList = res.data.list
-      this.page = { total: res.data.total, hasNextPage: res.data.hasNextPage }
+      const data = await this.$http.get('/users', this.queryParams)
+      this.userList = data.list
+      this.page = { total: data.total, hasNextPage: data.hasNextPage }
     },
     getUserRole(user) {
       if (user.userRoleList) {
@@ -407,13 +392,11 @@ export default {
     async setRoleDiglog(userInfo) {
       this.userInfo = userInfo
       this.roleDialogVisible = true
-      const { data: res } = await this.$http.get('/rights/roles/')
-      if (res.code !== 200) {
-        return this.$message.error(res.data)
+      const data = await this.$http.get('/rights/roles/')
+      this.roleList = data
+      if (userInfo.userRoleList) {
+        this.roleRoleIds = userInfo.userRoleList.map((role) => role.roleId)
       }
-      this.roleList = res.data
-
-      this.roleRoleIds = userInfo.userRoleList.map((role) => role.roleId)
     }
   }
 }

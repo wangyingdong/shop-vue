@@ -1,11 +1,7 @@
 <template>
   <div>
     <!--导航-->
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>数据报表</el-breadcrumb-item>
-    </el-breadcrumb>
-
+    <Nav :navList="navList"></Nav>
     <el-card>
       <template>
         <div class="Echarts">
@@ -17,10 +13,15 @@
 </template>
 
 <script>
+import Nav from '../nav/Nav.vue'
 export default {
   name: 'Reports',
+  components: {
+    Nav
+  },
   data() {
     return {
+      navList: [{ name: '数据管理' }, { name: '数据报表' }],
       dataName: [],
       dataValue: []
     }
@@ -53,11 +54,9 @@ export default {
     }
   },
   async mounted() {
-    const { data: res } = await this.$http.get('/orders/report')
-    if (res.code !== 200) {
-      return this.$message.error(res.data)
-    }
-    res.data.forEach((element) => {
+    const data = await this.$http.get('/orders/reports')
+
+    data.forEach((element) => {
       this.dataName.push(element.name)
       this.dataValue.push(element.amount)
     })
