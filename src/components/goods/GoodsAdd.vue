@@ -100,7 +100,6 @@
 <script>
 import _ from 'lodash'
 
-import Common from '@/common/Common.vue'
 export default {
   name: 'GoodsAdd',
   data() {
@@ -108,7 +107,7 @@ export default {
       previewVisible: false,
       previewPath: '',
       fileList: [], // upload多文件数组
-      uploadUrl: Common.baseURL + 'goods/upload',
+      uploadUrl: process.env.VUE_APP_BASE_API + 'goods/upload',
       categoryProps: {
         checkStrictly: false,
         value: 'id',

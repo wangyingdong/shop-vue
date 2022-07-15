@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import { getItem } from '@/utils/storage.js'
 
 //import Home from '../components/Home.vue'
 //import Login from '../components/Login.vue'
@@ -104,7 +105,7 @@ router.beforeEach((to, from, next) => {
   if (to.path === '/login') {
     return next()
   }
-  const token = window.sessionStorage.getItem('token')
+  const token = getItem('token')
   if (!token) {
     return next('/login')
   }

@@ -18,20 +18,22 @@ import 'quill/dist/quill.core.css'
 import 'quill/dist/quill.snow.css'
 import 'quill/dist/quill.bubble.css'
 
-import Common from './common/Common'
-
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
+
+import { getItem } from '@/utils/storage.js'
 
 // axios
 import axios from 'axios'
 Vue.prototype.$echarts = echarts
-axios.defaults.baseURL = Common.baseURL
+axios.defaults.baseURL = process.env.VUE_APP_BASE_API
 
 // 在request拦截，显示进度条
 axios.interceptors.request.use((config) => {
   NProgress.start()
-  config.headers.Authorization = window.sessionStorage.getItem('token')
+  if (getItem('token') != null) {
+    config.headers.Authorization = 'Bearer ' + getItem('token')
+  }
   return config
 })
 

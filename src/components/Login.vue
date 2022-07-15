@@ -15,7 +15,7 @@
         </el-form-item>
 
         <el-form-item class="btns">
-          <el-button type="primary" @click="submitLoginForm('loginFormRef')">登录</el-button>
+          <el-button type="primary" @click="submitLoginForm('loginFormRef')" :loading="loading">登录</el-button>
           <el-button type="info" @click="resetLoginForm('loginFormRef')">重置</el-button>
         </el-form-item>
       </el-form>
@@ -24,10 +24,12 @@
 </template>
 
 <script>
+import { setItem } from '@/utils/storage.js'
 export default {
   name: 'Login',
   data() {
     return {
+      loading: false,
       loginForm: {
         username: 'admin',
         password: '123456'
@@ -59,13 +61,14 @@ export default {
     submitLoginForm(formName) {
       this.$refs[formName].validate(async (valid) => {
         if (valid) {
+          this.loading = true
           const { data: res } = await this.$http.post('/users/login', this.loginForm)
-          console.log(res)
           if (res.code === 200) {
-            window.sessionStorage.setItem('token', res.data)
+            setItem('token', res.data.accessToken)
             this.$message.success('登录成功')
             this.$router.push('/home')
           } else {
+            this.loading = false
             return this.$message.error('登录失败')
           }
         }
