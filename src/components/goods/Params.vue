@@ -1,7 +1,11 @@
 <template>
   <div>
     <!--导航-->
-    <Nav :navList="navList"></Nav>
+    <el-breadcrumb separator-class="el-icon-arrow-right">
+      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item>商品管理</el-breadcrumb-item>
+      <el-breadcrumb-item>商品参数</el-breadcrumb-item>
+    </el-breadcrumb>
 
     <el-card>
       <el-alert show-icon :title="tipsTitle" :type="tipsType" :closable="false" style="margin: 0px 0px 10px 0px"> </el-alert>
@@ -109,17 +113,10 @@
 </template>
 
 <script>
-import Nav from '../nav/Nav.vue'
-
 export default {
   name: 'Params',
-  components: {
-    Nav
-  },
   data() {
     return {
-      navList: [{ name: '商品管理' }, { name: '商品参数' }],
-
       attribute: {},
       addAttributeForm: {
         name: ''
@@ -165,21 +162,25 @@ export default {
           value: inputValue,
           attributeId: row.id
         }
-        const data = await this.$http.post('/categories/attribute/value', obj)
-
+        const { data: res } = await this.$http.post('/category/attribute/value', obj)
+        if (res.code !== 200) {
+          return this.$message.error(res.data)
+        }
         this.$message({ type: 'success', message: '增加成功!' })
         if (!row.attributeValue) {
           row.attributeValue = []
         }
-        row.attributeValue.push(data)
+        row.attributeValue.push(res.data)
         console.log(row.attributeValue)
       }
       row.inputVisible = false
       row.inputValue = ''
     },
     async handleTagClose(tag, row) {
-      const data = await this.$http.delete('/categories/attribute/value/' + tag.id)
-
+      const { data: res } = await this.$http.delete('/category/attribute/value/' + tag.id)
+      if (res.code !== 200) {
+        return this.$message.error(res.data)
+      }
       this.$message({ type: 'success', message: '删除成功!' })
       row.attributeValue = row.attributeValue.filter((obj) => obj.id !== tag.id)
       console.log(row.attributeValue)
@@ -191,8 +192,10 @@ export default {
         type: 'warning'
       })
         .then(async () => {
-          const data = await this.$http.delete('/categories/attribute/' + row.id)
-
+          const { data: res } = await this.$http.delete('/category/attribute/' + row.id)
+          if (res.code !== 200) {
+            return this.$message.error(res.data)
+          }
           this.$message({ type: 'success', message: '删除成功!' })
           this.handleTabClick()
         })
@@ -211,8 +214,10 @@ export default {
     async editSubmitForm() {
       this.$refs.editAttributeForm.validate(async (valid) => {
         if (valid) {
-          const data = await this.$http.put('/categories/attribute/' + this.editAttributeForm.id + '/name/' + this.editAttributeForm.name)
-
+          const { data: res } = await this.$http.put('/category/attribute/' + this.editAttributeForm.id + '/name/' + this.editAttributeForm.name)
+          if (res.code !== 200) {
+            return this.$message.error(res.message)
+          }
           this.$message({ type: 'success', message: '修改成功!' })
           this.editDialogVisible = false
           this.resetForm('editAttributeForm')
@@ -224,12 +229,14 @@ export default {
     async addSubmitForm() {
       this.$refs.addAttributeForm.validate(async (valid) => {
         if (valid) {
-          const data = await this.$http.post('/categories/attribute', {
+          const { data: res } = await this.$http.post('/category/attribute', {
             categoryId: this.selectedKeys[this.selectedKeys.length - 1],
             name: this.addAttributeForm.name,
             type: this.activeName
           })
-
+          if (res.code !== 200) {
+            return this.$message.error(res.message)
+          }
           this.$message({ type: 'success', message: '增加成功!' })
           this.addDialogVisible = false
           this.resetForm('addAttributeForm')
@@ -255,29 +262,40 @@ export default {
       this.tipsTitle = '您当前选择的是：' + this.$refs.cascaderRef.getCheckedNodes()[0].pathLabels.join('-')
       this.tipsType = 'success'
       const id = this.selectedKeys[this.selectedKeys.length - 1]
-      const data = await this.$http.get('/categories/attribute/' + id + '/type/' + this.activeName)
-
+      const { data: res } = await this.$http.get('/category/attribute/' + id, {
+        params: {
+          type: this.activeName
+        }
+      })
+      if (res.code !== 200) {
+        return this.$message.error(res.message)
+      }
       // 在获取每行数据时，对每行数据进行循环并添加属性inputVisible和inputValue
-      data.forEach((item) => {
+      res.data.forEach((item) => {
         // 控制文本框的显示与隐藏
         item.inputVisible = false
         // 文本框中输入的值
         item.inputValue = ''
       })
+      console.log(res.data)
       if (this.activeName === 'dynamic') {
         // 动态
-        this.dynamicTableData = data
+        this.dynamicTableData = res.data
       } else {
-        this.staticTableData = data
+        this.staticTableData = res.data
       }
     },
     async getCategoryData() {
-      const data = await this.$http.get('/categories', {
-        pageNum: 1,
-        pageSize: 9999999
+      const { data: res } = await this.$http.get('/category', {
+        params: {
+          pageNum: 1,
+          pageSize: 9999999
+        }
       })
-
-      this.categoryData = data.list
+      if (res.code !== 200) {
+        return this.$message.error(res.message)
+      }
+      this.categoryData = res.data.list
     }
   },
   computed: {

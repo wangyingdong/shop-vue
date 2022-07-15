@@ -1,14 +1,17 @@
 <template>
   <div>
     <!--导航-->
-    <Nav :navList="navList"></Nav>
+    <el-breadcrumb separator-class="el-icon-arrow-right">
+      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item>订单列表</el-breadcrumb-item>
+    </el-breadcrumb>
 
     <!--搜索-->
     <el-card>
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" clearable v-model="queryParams.query" class="input-with-select" @clear="getOrderList">
-            <el-button slot="append" icon="el-icon-search" @click="getOrderList"></el-button>
+          <el-input placeholder="请输入内容" clearable class="input-with-select">
+            <el-button slot="append" icon="el-icon-search"></el-button>
           </el-input>
         </el-col>
 
@@ -18,10 +21,10 @@
       <!--表格列表-->
       <el-table :data="orderList" border stripe style="width: 100%">
         <el-table-column prop="id" label="编号" width="150"> </el-table-column>
-        <el-table-column prop="name" label="商品" width="200"> </el-table-column>
+        <el-table-column prop="name" label="商品" width="120"> </el-table-column>
         <el-table-column prop="amount" label="数量" width="50"> </el-table-column>
-        <el-table-column prop="price" label="价格" width="100"> </el-table-column>
-        <el-table-column prop="address" label="地址"> </el-table-column>
+        <el-table-column prop="price" label="价格"> </el-table-column>
+        <el-table-column prop="address" label="地址" width="250"> </el-table-column>
 
         <el-table-column prop="datetime" label="时间"> </el-table-column>
         <el-table-column prop="state" label="状态" width="100">
@@ -86,19 +89,12 @@
 </template>
 
 <script>
-import Nav from '../nav/Nav.vue'
-
 import { regionData, CodeToText } from 'element-china-area-data'
 
 export default {
   name: 'Orders',
-  components: {
-    Nav
-  },
   data() {
     return {
-      navList: [{ name: '订单管理' }, { name: '订单列表' }],
-
       // 省市区
       options: regionData,
       // 省市区
@@ -151,8 +147,11 @@ export default {
       this.addressDialogVisible = true
     },
     async showLogisticBox(row) {
-      const data = await this.$http.get('/orders/' + row.id + '/logistic')
-      this.logisticList = data
+      const { data: res } = await this.$http.get('/orders/' + row.id + '/logistic')
+      if (res.code !== 200) {
+        return this.$message.error(res.data)
+      }
+      this.logisticList = res.data
       this.logisticDialogVisible = true
     },
     handleSizeChange(val) {
@@ -164,10 +163,14 @@ export default {
       this.getOrderList()
     },
     async getOrderList() {
-      const data = await this.$http.get('/orders', this.queryParams)
-
-      this.orderList = data.list
-      this.page = { total: data.total, hasNextPage: data.hasNextPage }
+      const { data: res } = await this.$http.get('/orders', {
+        params: this.queryParams
+      })
+      if (res.code !== 200) {
+        return this.$message.error(res.data)
+      }
+      this.orderList = res.data.list
+      this.page = { total: res.data.total, hasNextPage: res.data.hasNextPage }
     }
   }
 }

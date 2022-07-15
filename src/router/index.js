@@ -25,7 +25,7 @@ const Rights = () => import(/* webpackChunkName: "user_power" */ '../components/
 const Roles = () => import(/* webpackChunkName: "user_power" */ '../components/power/Roles.vue')
 
 const Categories = () => import(/* webpackChunkName: "goods" */ '../components/goods/Categories.vue')
-const Attributes = () => import(/* webpackChunkName: "goods" */ '../components/goods/Attributes.vue')
+const Params = () => import(/* webpackChunkName: "goods" */ '../components/goods/Params.vue')
 const Goods = () => import(/* webpackChunkName: "goods" */ '../components/goods/Goods.vue')
 const GoodsAdd = () => import(/* webpackChunkName: "goods" */ '../components/goods/GoodsAdd.vue')
 
@@ -55,11 +55,11 @@ const routes = [
         component: Users
       },
       {
-        path: '/rights/authorities',
+        path: '/rights',
         component: Rights
       },
       {
-        path: '/rights/roles',
+        path: '/roles',
         component: Roles
       },
       {
@@ -67,8 +67,8 @@ const routes = [
         component: Categories
       },
       {
-        path: '/attributes',
-        component: Attributes
+        path: '/params',
+        component: Params
       },
       {
         path: '/goods',
@@ -83,7 +83,7 @@ const routes = [
         component: Orders
       },
       {
-        path: '/orders/reports',
+        path: '/reports',
         component: Reports
       }
     ]

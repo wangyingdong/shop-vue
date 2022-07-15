@@ -1,7 +1,11 @@
 <template>
   <div>
     <!--导航-->
-    <Nav :navList="navList"></Nav>
+    <el-breadcrumb separator-class="el-icon-arrow-right">
+      <el-breadcrumb-item :to="{ path: '/home' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item>商品管理</el-breadcrumb-item>
+      <el-breadcrumb-item>增加商品</el-breadcrumb-item>
+    </el-breadcrumb>
 
     <el-card>
       <el-row>
@@ -94,20 +98,12 @@
 </template>
 
 <script>
-import Nav from '../nav/Nav.vue'
-
 import _ from 'lodash'
 
 export default {
   name: 'GoodsAdd',
-
-  components: {
-    Nav
-  },
   data() {
     return {
-      navList: [{ name: '商品管理' }, { name: '商品增加' }],
-
       previewVisible: false,
       previewPath: '',
       fileList: [], // upload多文件数组
@@ -183,7 +179,12 @@ export default {
       const form = _.cloneDeep(this.addForm)
       form.images = this.addForm.images.join(',')
       form.categoryId = this.addForm.categoryId[this.addForm.categoryId.length - 1]
-      const data = await this.$http.post('/goods', form)
+      console.log(form)
+
+      const { data: res } = await this.$http.post('/goods', form)
+      if (res.code !== 200) {
+        return this.$message.error(res.message)
+      }
       this.$message.success('商品增加成功!')
       this.$router.push('/goods')
     },
@@ -192,7 +193,7 @@ export default {
       this.previewVisible = true
     },
     handleUploadSuccess(res, file) {
-      console.log(res)
+      console.log(file)
       if (res.code !== 200) {
         return this.$message.error(res.message)
       }
@@ -230,11 +231,16 @@ export default {
 
     async showAddCategoryDialog() {
       this.addCategoryDialogVisible = true
-      const data = await this.$http.get('/category', {
-        pageNum: 1,
-        pageSize: 9999999
+      const { data: res } = await this.$http.get('/category', {
+        params: {
+          pageNum: 1,
+          pageSize: 9999999
+        }
       })
-      this.categoryData = data.list
+      if (res.code !== 200) {
+        return this.$message.error(res.message)
+      }
+      this.categoryData = res.data.list
     },
     handleChange(value) {
       if (this.addForm.categoryId.length > 0) {
@@ -246,10 +252,16 @@ export default {
     },
     async getAttributeData(value) {
       const id = value[value.length - 1]
-      const data = await this.$http.get('/category/attribute/' + id, {
-        type: 'dynamic'
+      const { data: res } = await this.$http.get('/category/attribute/' + id, {
+        params: {
+          type: 'dynamic'
+        }
       })
-      this.addForm.attributeValues = data
+      if (res.code !== 200) {
+        return this.$message.error(res.message)
+      }
+      console.log(res.data)
+      this.addForm.attributeValues = res.data
     }
   },
 
